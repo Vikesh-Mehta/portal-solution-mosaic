@@ -13,7 +13,8 @@ import {
   Clock,
   FileText,
   Activity,
-  Check
+  Check,
+  Pill // Import the Pill icon instead of using PillIcon
 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -434,7 +435,7 @@ const Profile = () => {
               <div className="rounded-xl border border-border bg-card overflow-hidden">
                 <div className="p-4 border-b border-border flex items-center justify-between">
                   <h3 className="font-medium flex items-center">
-                    <PillIcon size={18} className="mr-2 text-medical-600" />
+                    <Pill size={18} className="mr-2 text-medical-600" />
                     Current Medications
                   </h3>
                   <Link
