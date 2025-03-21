@@ -2,6 +2,7 @@
 import { toast } from "sonner";
 
 const API_ENDPOINT = "wss://ws-api.runware.ai/v1";
+const STORAGE_KEY = "runware_api_key";
 
 export interface GenerateImageParams {
   positivePrompt: string;
@@ -33,9 +34,16 @@ export class RunwareService {
   private isAuthenticated: boolean = false;
   private connectionPromise: Promise<void> | null = null;
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-    this.connectionPromise = this.connect();
+  constructor(apiKey?: string) {
+    // Try to get API key from localStorage if not provided
+    this.apiKey = apiKey || localStorage.getItem(STORAGE_KEY);
+    
+    // If we have an API key, connect immediately
+    if (this.apiKey) {
+      // Store the API key in localStorage for future use
+      localStorage.setItem(STORAGE_KEY, this.apiKey);
+      this.connectionPromise = this.connect();
+    }
   }
 
   private connect(): Promise<void> {
@@ -114,7 +122,23 @@ export class RunwareService {
     });
   }
 
+  // Method to set API key if not provided in constructor
+  setApiKey(apiKey: string): void {
+    this.apiKey = apiKey;
+    localStorage.setItem(STORAGE_KEY, apiKey);
+    this.connectionPromise = this.connect();
+  }
+
   async generateImage(params: GenerateImageParams): Promise<GeneratedImage> {
+    // Check if we have an API key
+    if (!this.apiKey) {
+      const newApiKey = prompt('Please enter your Runware API key:');
+      if (!newApiKey) {
+        throw new Error("API key is required");
+      }
+      this.setApiKey(newApiKey);
+    }
+
     await this.connectionPromise;
 
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.isAuthenticated) {

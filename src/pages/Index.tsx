@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Activity, VideoIcon, PillIcon, Map, HeartPulse, Brain } from 'lucide-react';
@@ -6,38 +5,16 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import FeatureCard from '@/components/ui/FeatureCard';
 import BoothLocator from '@/components/ui/BoothLocator';
-import { RunwareService } from '@/services/runware'; // We'll create this service
 
 const Index = () => {
   const [showLocator, setShowLocator] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [boothImage, setBoothImage] = useState('/lovable-uploads/345f8e88-29cc-4be2-be10-b8698b4e06e2.png');
+  const boothImage = '/lovable-uploads/345f8e88-29cc-4be2-be10-b8698b4e06e2.png';
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true);
     }, 100);
-
-    // Generate a medical-themed image
-    const generateMedicalImage = async () => {
-      try {
-        const runwareService = new RunwareService(prompt('Please enter your Runware API key:'));
-        const result = await runwareService.generateImage({
-          positivePrompt: 'Modern medical health booth with advanced technology, clean white interior, medical equipment, holographic displays, futuristic healthcare setting',
-          model: 'runware:100@1',
-          width: 1024,
-          height: 1024,
-        });
-        
-        if (result.imageURL) {
-          setBoothImage(result.imageURL);
-        }
-      } catch (error) {
-        console.error('Failed to generate image:', error);
-      }
-    };
-
-    generateMedicalImage();
 
     return () => clearTimeout(timer);
   }, []);
