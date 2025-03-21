@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Activity, VideoIcon, PillIcon, Map, HeartPulse, Brain } from 'lucide-react';
@@ -9,7 +10,7 @@ import BoothLocator from '@/components/ui/BoothLocator';
 const Index = () => {
   const [showLocator, setShowLocator] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const boothImage = '/lovable-uploads/345f8e88-29cc-4be2-be10-b8698b4e06e2.png';
+  const boothImage = '/lovable-uploads/ed7ed09c-9713-4f2f-b711-d01e486e9aeb.png';
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -92,7 +93,7 @@ const Index = () => {
                   <div className="relative bg-gradient-to-br from-medical-50 to-transparent border border-border rounded-2xl overflow-hidden shadow-lg">
                     <img 
                       src={boothImage} 
-                      alt="Smart Health Booth" 
+                      alt="Smart Health Booth in rural setting with holographic doctor interface" 
                       className="w-full h-auto"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent"></div>
