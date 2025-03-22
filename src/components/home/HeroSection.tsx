@@ -57,11 +57,17 @@ const HeroSection = ({ boothImage }: HeroSectionProps) => {
               <div className="absolute -top-10 -left-10 w-24 h-24 bg-medical-400/10 rounded-full filter blur-xl animate-pulse"></div>
               <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-healing-400/10 rounded-full filter blur-xl animate-pulse delay-700"></div>
               <div className="relative bg-gradient-to-br from-medical-50 to-transparent border border-border rounded-2xl overflow-hidden shadow-lg">
-                <img 
-                  src={boothImage} 
-                  alt="Smart Health Booth in rural setting with holographic doctor interface" 
-                  className="w-full h-auto"
-                />
+                {boothImage && (
+                  <img 
+                    src={boothImage} 
+                    alt="Smart Health Booth in rural setting with holographic doctor interface" 
+                    className="w-full h-auto object-cover"
+                    onError={(e) => {
+                      console.error("Image failed to load:", boothImage);
+                      e.currentTarget.src = "/placeholder.svg";
+                    }}
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <h3 className="text-xl font-semibold mb-2">Smart Telehealth Booth</h3>
