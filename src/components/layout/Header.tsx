@@ -1,158 +1,164 @@
 
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, Bell, Moon, Sun } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, User, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
-  const toggleMenu = () => setIsOpen(!isOpen);
-  const closeMenu = () => setIsOpen(false);
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    closeMenu();
-  }, [location]);
-
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Health Checkup', path: '/health-checkup' },
-    { name: 'Virtual Doctor', path: '/virtual-consultation' },
-    { name: 'Medicine Advisor', path: '/medicine-advisor' },
+  const navItems = user ? [
+    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Health Checkup', href: '/health-checkup' },
+    { name: 'Virtual Consultation', href: '/virtual-consultation' },
+    { name: 'Medicine Advisor', href: '/medicine-advisor' },
+    { name: 'Profile', href: '/profile' },
+  ] : [
+    { name: 'Features', href: '#features' },
+    { name: 'How it Works', href: '#how-it-works' },
+    { name: 'Contact', href: '#contact' },
   ];
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'py-2 glass dark:glass-dark shadow-sm' : 'py-4 bg-transparent'
-      }`}
-    >
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex items-center justify-between">
-          <Link 
-            to="/" 
-            className="flex items-center space-x-2"
-            onClick={closeMenu}
-          >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-medical-500 to-healing-500 flex items-center justify-center">
-              <span className="text-white font-bold text-xl">SH</span>
+    <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-border z-50">
+      <div className="container px-4 md:px-6 mx-auto">
+        <div className="flex items-center justify-between h-16">
+          <Link to={user ? "/dashboard" : "/"} className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-medical-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">S</span>
             </div>
-            <span className="text-xl font-medium">Smart Health</span>
+            <span className="font-bold text-xl text-gray-900">Smart Health</span>
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-6">
-            {navLinks.map((link) => (
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
               <Link
-                key={link.path}
-                to={link.path}
-                className={`text-sm font-medium transition-colors hover:text-medical-600 ${
-                  location.pathname === link.path
-                    ? 'text-medical-600 dark:text-medical-400'
-                    : 'text-foreground/80'
-                }`}
+                key={item.name}
+                to={item.href}
+                className="text-gray-600 hover:text-medical-600 font-medium transition-colors"
               >
-                {link.name}
+                {item.name}
               </Link>
             ))}
           </nav>
 
+          {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
-            <button 
-              onClick={toggleDarkMode}
-              className="p-2 rounded-full hover:bg-accent transition-colors"
-              aria-label="Toggle dark mode"
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            <button 
-              className="p-2 rounded-full hover:bg-accent transition-colors relative"
-              aria-label="Notifications"
-            >
-              <Bell size={20} />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-destructive rounded-full"></span>
-            </button>
-            <Link 
-              to="/profile" 
-              className="p-2 rounded-full hover:bg-accent transition-colors"
-              aria-label="Profile"
-            >
-              <User size={20} />
-            </Link>
+            {user ? (
+              <div className="flex items-center space-x-3">
+                <Link
+                  to="/profile"
+                  className="flex items-center space-x-2 text-gray-600 hover:text-medical-600 transition-colors"
+                >
+                  <User size={20} />
+                  <span className="font-medium">Profile</span>
+                </Link>
+                <Button
+                  onClick={handleSignOut}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <LogOut size={16} />
+                  <span>Sign Out</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <Link to="/auth">
+                  <Button variant="outline" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button size="sm" className="bg-medical-600 hover:bg-medical-700">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
 
+          {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 rounded-md hover:bg-accent/80 transition-colors"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
-      </div>
 
-      {/* Mobile menu */}
-      {isOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 glass dark:glass-dark shadow-md animate-fade-in">
-          <div className="py-4 px-6 space-y-4">
-            <nav className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-border bg-white">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {navItems.map((item) => (
                 <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`text-sm font-medium transition-colors hover:text-medical-600 ${
-                    location.pathname === link.path
-                      ? 'text-medical-600 dark:text-medical-400'
-                      : 'text-foreground/80'
-                  }`}
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-gray-600 hover:text-medical-600 font-medium transition-colors"
                 >
-                  {link.name}
+                  {item.name}
                 </Link>
               ))}
-              <Link
-                to="/profile"
-                className="text-sm font-medium transition-colors hover:text-medical-600"
-              >
-                My Profile
-              </Link>
-            </nav>
-            <div className="flex items-center space-x-4 pt-2 border-t border-border">
-              <button 
-                onClick={toggleDarkMode}
-                className="p-2 rounded-full hover:bg-accent/80 transition-colors flex items-center space-x-2"
-              >
-                {isDarkMode ? (
-                  <>
-                    <Sun size={18} />
-                    <span>Light Mode</span>
-                  </>
-                ) : (
-                  <>
-                    <Moon size={18} />
-                    <span>Dark Mode</span>
-                  </>
-                )}
-              </button>
+              
+              {user ? (
+                <div className="border-t border-border pt-2 mt-2">
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-medical-600 transition-colors"
+                  >
+                    <User size={20} />
+                    <span>Profile</span>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-medical-600 transition-colors w-full text-left"
+                  >
+                    <LogOut size={20} />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="border-t border-border pt-2 mt-2 space-y-2">
+                  <Link
+                    to="/auth"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-3 py-2"
+                  >
+                    <Button variant="outline" size="sm" className="w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link
+                    to="/auth"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-3 py-2"
+                  >
+                    <Button size="sm" className="w-full bg-medical-600 hover:bg-medical-700">
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 };

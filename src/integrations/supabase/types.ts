@@ -9,7 +9,153 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          appointment_type: string
+          created_at: string | null
+          doctor_name: string
+          id: string
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          appointment_type: string
+          created_at?: string | null
+          doctor_name: string
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          appointment_type?: string
+          created_at?: string | null
+          doctor_name?: string
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_records: {
+        Row: {
+          created_at: string | null
+          date_recorded: string
+          description: string | null
+          doctor_name: string | null
+          files: string[] | null
+          id: string
+          recommendations: string | null
+          record_type: string
+          test_results: Json | null
+          title: string
+          user_id: string
+          vital_signs: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_recorded: string
+          description?: string | null
+          doctor_name?: string | null
+          files?: string[] | null
+          id?: string
+          recommendations?: string | null
+          record_type: string
+          test_results?: Json | null
+          title: string
+          user_id: string
+          vital_signs?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          date_recorded?: string
+          description?: string | null
+          doctor_name?: string | null
+          files?: string[] | null
+          id?: string
+          recommendations?: string | null
+          record_type?: string
+          test_results?: Json | null
+          title?: string
+          user_id?: string
+          vital_signs?: Json | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          allergies: string[] | null
+          blood_group: string | null
+          created_at: string | null
+          current_medications: string[] | null
+          date_of_birth: string | null
+          email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          first_name: string | null
+          gender: string | null
+          height_cm: number | null
+          id: string
+          last_name: string | null
+          medical_conditions: string[] | null
+          phone: string | null
+          updated_at: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          address?: string | null
+          allergies?: string[] | null
+          blood_group?: string | null
+          created_at?: string | null
+          current_medications?: string[] | null
+          date_of_birth?: string | null
+          email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          first_name?: string | null
+          gender?: string | null
+          height_cm?: number | null
+          id: string
+          last_name?: string | null
+          medical_conditions?: string[] | null
+          phone?: string | null
+          updated_at?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          address?: string | null
+          allergies?: string[] | null
+          blood_group?: string | null
+          created_at?: string | null
+          current_medications?: string[] | null
+          date_of_birth?: string | null
+          email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          first_name?: string | null
+          gender?: string | null
+          height_cm?: number | null
+          id?: string
+          last_name?: string | null
+          medical_conditions?: string[] | null
+          phone?: string | null
+          updated_at?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
