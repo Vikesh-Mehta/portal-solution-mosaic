@@ -17,28 +17,54 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HealthMetricCard from '@/components/ui/HealthMetricCard';
 import VirtualDoctorCard from '@/components/ui/VirtualDoctorCard';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { useUserHealthRecords } from '@/hooks/useUserHealthRecords';
+import { useUserAppointments } from '@/hooks/useUserAppointments';
 
 const Dashboard = () => {
-  const [loading, setLoading] = useState(true);
-  const [userData, setUserData] = useState({
-    name: 'Ravi Sharma',
-    age: 45,
-    lastCheckup: '2 days ago',
-    nextAppointment: 'Tomorrow, 10:00 AM',
-    metrics: {
-      heartRate: { value: 72, unit: 'bpm', status: 'normal' as const },
-      bloodPressure: { value: '126/82', unit: 'mmHg', status: 'normal' as const },
-      bloodSugar: { value: 110, unit: 'mg/dL', status: 'normal' as const },
-      oxygenLevel: { value: 98, unit: '%', status: 'normal' as const }
-    }
-  });
+  const { profile, loading: profileLoading } = useUserProfile();
+  const { records, loading: recordsLoading } = useUserHealthRecords();
+  const { appointments, loading: appointmentsLoading } = useUserAppointments();
+  
+  const loading = profileLoading || recordsLoading || appointmentsLoading;
 
-  useEffect(() => {
-    // Simulate data loading
-    setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-  }, []);
+  // Get latest health metrics from the most recent health record
+  const latestHealthRecord = records.find(record => 
+    record.record_type === 'checkup' && record.vital_signs
+  );
+
+  const healthMetrics = latestHealthRecord?.vital_signs || {
+    heartRate: { value: '--', unit: 'bpm', status: 'normal' as const },
+    bloodPressure: { value: '--', unit: 'mmHg', status: 'normal' as const },
+    bloodSugar: { value: '--', unit: 'mg/dL', status: 'normal' as const },
+    oxygenLevel: { value: '--', unit: '%', status: 'normal' as const }
+  };
+
+  // Get upcoming appointments
+  const upcomingAppointments = appointments.filter(apt => {
+    const appointmentDate = new Date(apt.appointment_date + 'T' + apt.appointment_time);
+    return appointmentDate > new Date() && apt.status === 'scheduled';
+  }).slice(0, 3);
+
+  // Get recent appointments
+  const recentAppointments = appointments.filter(apt => {
+    const appointmentDate = new Date(apt.appointment_date + 'T' + apt.appointment_time);
+    return appointmentDate <= new Date() || apt.status === 'completed';
+  }).slice(0, 4);
+
+  // Get recent health activities
+  const recentActivities = records.slice(0, 4).map(record => ({
+    id: record.id,
+    type: record.record_type,
+    title: record.title,
+    date: new Date(record.date_recorded).toLocaleDateString(),
+    description: record.description || 'No description available',
+    icon: record.record_type === 'checkup' ? 
+      <Activity size={16} className="text-medical-500" /> :
+      record.record_type === 'consultation' ?
+      <VideoIcon size={16} className="text-medical-500" /> :
+      <PillIcon size={16} className="text-medical-500" />
+  }));
 
   const doctors = [
     {
@@ -64,64 +90,13 @@ const Dashboard = () => {
     }
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'checkup',
-      title: 'Health Checkup',
-      date: '2 days ago',
-      description: 'Blood pressure, heart rate, and oxygen levels measured',
-      icon: <Activity size={16} className="text-medical-500" />
-    },
-    {
-      id: 2,
-      type: 'consultation',
-      title: 'Virtual Consultation',
-      date: '5 days ago',
-      description: 'Consulted with Dr. Ananya about recurring headaches',
-      icon: <VideoIcon size={16} className="text-medical-500" />
-    },
-    {
-      id: 3,
-      type: 'medication',
-      title: 'Medication Dispensed',
-      date: '5 days ago',
-      description: 'Prescribed paracetamol for headache relief',
-      icon: <PillIcon size={16} className="text-medical-500" />
-    },
-    {
-      id: 4,
-      type: 'checkup',
-      title: 'Health Checkup',
-      date: '2 weeks ago',
-      description: 'Full health assessment including ECG',
-      icon: <Activity size={16} className="text-medical-500" />
-    }
-  ];
+  const userName = profile ? 
+    `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 
+    profile.email.split('@')[0] : 
+    'User';
 
-  const upcomingReminders = [
-    {
-      id: 1,
-      title: 'Virtual Consultation',
-      date: 'Tomorrow, 10:00 AM',
-      description: 'Follow-up with Dr. Ananya Singh',
-      icon: <VideoIcon size={16} className="text-healing-500" />
-    },
-    {
-      id: 2,
-      title: 'Medication Reminder',
-      date: 'Today, 08:00 PM',
-      description: 'Take blood pressure medication',
-      icon: <PillIcon size={16} className="text-healing-500" />
-    },
-    {
-      id: 3,
-      title: 'Health Checkup Due',
-      date: 'In 3 days',
-      description: 'Regular monthly checkup at Smart Health Booth',
-      icon: <Activity size={16} className="text-healing-500" />
-    }
-  ];
+  const lastCheckup = records.find(r => r.record_type === 'checkup');
+  const nextAppointment = upcomingAppointments[0];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -140,15 +115,21 @@ const Dashboard = () => {
               <div className="mb-8">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h1 className="text-3xl font-bold mb-2">Welcome, {userData.name}</h1>
+                    <h1 className="text-3xl font-bold mb-2">Welcome, {userName}</h1>
                     <p className="text-muted-foreground">
                       Here's a summary of your health stats and recent activities
                     </p>
                   </div>
                   <div className="mt-4 md:mt-0 flex items-center space-x-3">
                     <div className="text-sm text-muted-foreground">
-                      <span className="block">Last checkup: {userData.lastCheckup}</span>
-                      <span className="block mt-1">Next appointment: {userData.nextAppointment}</span>
+                      <span className="block">
+                        Last checkup: {lastCheckup ? new Date(lastCheckup.date_recorded).toLocaleDateString() : 'No checkups yet'}
+                      </span>
+                      <span className="block mt-1">
+                        Next appointment: {nextAppointment ? 
+                          `${new Date(nextAppointment.appointment_date).toLocaleDateString()}, ${nextAppointment.appointment_time}` : 
+                          'No upcoming appointments'}
+                      </span>
                     </div>
                     <Link 
                       to="/health-checkup"
@@ -176,35 +157,35 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   <HealthMetricCard
                     title="Heart Rate"
-                    value={userData.metrics.heartRate.value}
-                    unit={userData.metrics.heartRate.unit}
-                    status={userData.metrics.heartRate.status}
+                    value={healthMetrics.heartRate?.value || '--'}
+                    unit={healthMetrics.heartRate?.unit || 'bpm'}
+                    status={healthMetrics.heartRate?.status || 'normal'}
                     icon={<Heart size={20} />}
-                    description="Normal resting heart rate"
+                    description={healthMetrics.heartRate?.value !== '--' ? "Normal resting heart rate" : "No recent data"}
                   />
                   <HealthMetricCard
                     title="Blood Pressure"
-                    value={userData.metrics.bloodPressure.value}
-                    unit={userData.metrics.bloodPressure.unit}
-                    status={userData.metrics.bloodPressure.status}
+                    value={healthMetrics.bloodPressure?.value || '--'}
+                    unit={healthMetrics.bloodPressure?.unit || 'mmHg'}
+                    status={healthMetrics.bloodPressure?.status || 'normal'}
                     icon={<Activity size={20} />}
-                    description="Healthy range"
+                    description={healthMetrics.bloodPressure?.value !== '--' ? "Healthy range" : "No recent data"}
                   />
                   <HealthMetricCard
                     title="Blood Sugar"
-                    value={userData.metrics.bloodSugar.value}
-                    unit={userData.metrics.bloodSugar.unit}
-                    status={userData.metrics.bloodSugar.status}
+                    value={healthMetrics.bloodSugar?.value || '--'}
+                    unit={healthMetrics.bloodSugar?.unit || 'mg/dL'}
+                    status={healthMetrics.bloodSugar?.status || 'normal'}
                     icon={<Droplet size={20} />}
-                    description="Fasting glucose level"
+                    description={healthMetrics.bloodSugar?.value !== '--' ? "Fasting glucose level" : "No recent data"}
                   />
                   <HealthMetricCard
                     title="Oxygen Level"
-                    value={userData.metrics.oxygenLevel.value}
-                    unit={userData.metrics.oxygenLevel.unit}
-                    status={userData.metrics.oxygenLevel.status}
+                    value={healthMetrics.oxygenLevel?.value || '--'}
+                    unit={healthMetrics.oxygenLevel?.unit || '%'}
+                    status={healthMetrics.oxygenLevel?.status || 'normal'}
                     icon={<Waves size={20} />}
-                    description="SpO2 measurement"
+                    description={healthMetrics.oxygenLevel?.value !== '--' ? "SpO2 measurement" : "No recent data"}
                   />
                 </div>
               </section>
@@ -250,30 +231,42 @@ const Dashboard = () => {
                     </div>
                     
                     <div className="rounded-xl border border-border/40 bg-card overflow-hidden">
-                      <ul className="divide-y divide-border">
-                        {recentActivities.map(activity => (
-                          <li key={activity.id}>
-                            <div className="p-4 hover:bg-muted/50 transition-colors">
-                              <div className="flex items-start">
-                                <div className="p-2 rounded-full bg-muted mr-3 mt-0.5">
-                                  {activity.icon}
-                                </div>
-                                <div>
-                                  <div className="flex items-center">
-                                    <h3 className="font-medium">{activity.title}</h3>
-                                    <span className="ml-2 text-xs text-muted-foreground">
-                                      {activity.date}
-                                    </span>
+                      {recentActivities.length > 0 ? (
+                        <ul className="divide-y divide-border">
+                          {recentActivities.map(activity => (
+                            <li key={activity.id}>
+                              <div className="p-4 hover:bg-muted/50 transition-colors">
+                                <div className="flex items-start">
+                                  <div className="p-2 rounded-full bg-muted mr-3 mt-0.5">
+                                    {activity.icon}
                                   </div>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {activity.description}
-                                  </p>
+                                  <div>
+                                    <div className="flex items-center">
+                                      <h3 className="font-medium">{activity.title}</h3>
+                                      <span className="ml-2 text-xs text-muted-foreground">
+                                        {activity.date}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      {activity.description}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="p-6 text-center">
+                          <p className="text-muted-foreground">No recent activities</p>
+                          <Link 
+                            to="/health-checkup"
+                            className="mt-2 text-sm text-medical-600 dark:text-medical-400 hover:underline"
+                          >
+                            Start your first health checkup
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   </section>
                 </div>
@@ -300,31 +293,43 @@ const Dashboard = () => {
                           <CalendarDays size={16} />
                         </button>
                       </div>
-                      <ul className="divide-y divide-border">
-                        {upcomingReminders.map(reminder => (
-                          <li key={reminder.id}>
-                            <div className="p-4 hover:bg-muted/50 transition-colors">
-                              <div className="flex items-start">
-                                <div className="p-2 rounded-full bg-muted/70 mr-3 mt-0.5">
-                                  {reminder.icon}
-                                </div>
-                                <div>
-                                  <div className="flex items-center">
-                                    <h3 className="font-medium">{reminder.title}</h3>
+                      {upcomingAppointments.length > 0 ? (
+                        <ul className="divide-y divide-border">
+                          {upcomingAppointments.map(appointment => (
+                            <li key={appointment.id}>
+                              <div className="p-4 hover:bg-muted/50 transition-colors">
+                                <div className="flex items-start">
+                                  <div className="p-2 rounded-full bg-muted/70 mr-3 mt-0.5">
+                                    <VideoIcon size={16} className="text-healing-500" />
                                   </div>
-                                  <p className="text-xs text-medical-600 dark:text-medical-400 font-medium flex items-center mt-1">
-                                    <Clock size={12} className="mr-1" />
-                                    {reminder.date}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {reminder.description}
-                                  </p>
+                                  <div>
+                                    <div className="flex items-center">
+                                      <h3 className="font-medium">{appointment.appointment_type}</h3>
+                                    </div>
+                                    <p className="text-xs text-medical-600 dark:text-medical-400 font-medium flex items-center mt-1">
+                                      <Clock size={12} className="mr-1" />
+                                      {new Date(appointment.appointment_date).toLocaleDateString()}, {appointment.appointment_time}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      with {appointment.doctor_name}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="p-6 text-center">
+                          <p className="text-muted-foreground">No upcoming appointments</p>
+                          <Link 
+                            to="/virtual-consultation"
+                            className="mt-2 text-sm text-medical-600 dark:text-medical-400 hover:underline"
+                          >
+                            Schedule a consultation
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   </section>
 
