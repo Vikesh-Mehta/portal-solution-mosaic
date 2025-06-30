@@ -6,20 +6,23 @@ import {
   Droplet, 
   Waves, 
   Activity, 
-  Clock, 
-  Calendar, 
   ChevronRight, 
-  CalendarDays,
   VideoIcon,
-  PillIcon
+  PillIcon,
+  Settings,
+  Bell
 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HealthMetricCard from '@/components/ui/HealthMetricCard';
 import VirtualDoctorCard from '@/components/ui/VirtualDoctorCard';
+import HealthInsights from '@/components/dashboard/HealthInsights';
+import QuickStats from '@/components/dashboard/QuickStats';
+import AppointmentReminders from '@/components/dashboard/AppointmentReminders';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useUserHealthRecords } from '@/hooks/useUserHealthRecords';
 import { useUserAppointments } from '@/hooks/useUserAppointments';
+import { Button } from '@/components/ui/button';
 
 const Dashboard = () => {
   const { profile, loading: profileLoading } = useUserProfile();
@@ -39,18 +42,6 @@ const Dashboard = () => {
     bloodSugar: { value: '--', unit: 'mg/dL', status: 'normal' as const },
     oxygenLevel: { value: '--', unit: '%', status: 'normal' as const }
   };
-
-  // Get upcoming appointments
-  const upcomingAppointments = appointments.filter(apt => {
-    const appointmentDate = new Date(apt.appointment_date + 'T' + apt.appointment_time);
-    return appointmentDate > new Date() && apt.status === 'scheduled';
-  }).slice(0, 3);
-
-  // Get recent appointments
-  const recentAppointments = appointments.filter(apt => {
-    const appointmentDate = new Date(apt.appointment_date + 'T' + apt.appointment_time);
-    return appointmentDate <= new Date() || apt.status === 'completed';
-  }).slice(0, 4);
 
   // Get recent health activities
   const recentActivities = records.slice(0, 4).map(record => ({
@@ -78,15 +69,8 @@ const Dashboard = () => {
       id: 'dr-2',
       name: 'Dr. Rajesh Kumar',
       specialty: 'Cardiologist',
-      availability: 'Busy' as const,
-      rating: 4.9
-    },
-    {
-      id: 'dr-3',
-      name: 'Dr. Priya Patel',
-      specialty: 'Pediatrician',
       availability: 'Available' as const,
-      rating: 4.7
+      rating: 4.9
     }
   ];
 
@@ -94,9 +78,6 @@ const Dashboard = () => {
     `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 
     profile.email.split('@')[0] : 
     'User';
-
-  const lastCheckup = records.find(r => r.record_type === 'checkup');
-  const nextAppointment = upcomingAppointments[0];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -115,41 +96,46 @@ const Dashboard = () => {
               <div className="mb-8">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h1 className="text-3xl font-bold mb-2">Welcome, {userName}</h1>
+                    <h1 className="text-3xl font-bold mb-2">Welcome back, {userName}</h1>
                     <p className="text-muted-foreground">
-                      Here's a summary of your health stats and recent activities
+                      Here's your health overview and recent activities
                     </p>
                   </div>
                   <div className="mt-4 md:mt-0 flex items-center space-x-3">
-                    <div className="text-sm text-muted-foreground">
-                      <span className="block">
-                        Last checkup: {lastCheckup ? new Date(lastCheckup.date_recorded).toLocaleDateString() : 'No checkups yet'}
-                      </span>
-                      <span className="block mt-1">
-                        Next appointment: {nextAppointment ? 
-                          `${new Date(nextAppointment.appointment_date).toLocaleDateString()}, ${nextAppointment.appointment_time}` : 
-                          'No upcoming appointments'}
-                      </span>
-                    </div>
-                    <Link 
-                      to="/health-checkup"
-                      className="bg-medical-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-medical-700 transition-colors"
-                    >
-                      New Checkup
+                    <Button variant="outline" size="sm">
+                      <Bell size={16} className="mr-2" />
+                      Notifications
+                    </Button>
+                    <Link to="/profile">
+                      <Button variant="outline" size="sm">
+                        <Settings size={16} className="mr-2" />
+                        Settings
+                      </Button>
+                    </Link>
+                    <Link to="/health-checkup">
+                      <Button>
+                        <Activity size={16} className="mr-2" />
+                        New Checkup
+                      </Button>
                     </Link>
                   </div>
                 </div>
               </div>
 
+              {/* Quick Stats */}
+              <div className="mb-8">
+                <QuickStats records={records} appointments={appointments} />
+              </div>
+
               {/* Health Metrics Section */}
-              <section className="mb-10">
+              <section className="mb-8">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold">Health Metrics</h2>
+                  <h2 className="text-xl font-semibold">Latest Vital Signs</h2>
                   <Link 
                     to="/health-checkup"
                     className="text-sm font-medium text-medical-600 dark:text-medical-400 hover:underline flex items-center"
                   >
-                    <span>View Details</span>
+                    <span>Record New</span>
                     <ChevronRight size={16} className="ml-1" />
                   </Link>
                 </div>
@@ -193,7 +179,10 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column */}
                 <div className="lg:col-span-2 space-y-8">
-                  {/* Virtual Doctors Section */}
+                  {/* Health Insights */}
+                  <HealthInsights records={records} />
+
+                  {/* Available Doctors Section */}
                   <section>
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-xl font-semibold">Available Doctors</h2>
@@ -223,11 +212,7 @@ const Dashboard = () => {
                   {/* Recent Activity Section */}
                   <section>
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-semibold">Recent Activity</h2>
-                      <button className="text-sm font-medium text-medical-600 dark:text-medical-400 hover:underline flex items-center">
-                        <span>View All</span>
-                        <ChevronRight size={16} className="ml-1" />
-                      </button>
+                      <h2 className="text-xl font-semibold">Recent Health Activity</h2>
                     </div>
                     
                     <div className="rounded-xl border border-border/40 bg-card overflow-hidden">
@@ -240,15 +225,18 @@ const Dashboard = () => {
                                   <div className="p-2 rounded-full bg-muted mr-3 mt-0.5">
                                     {activity.icon}
                                   </div>
-                                  <div>
-                                    <div className="flex items-center">
+                                  <div className="flex-1">
+                                    <div className="flex items-center justify-between">
                                       <h3 className="font-medium">{activity.title}</h3>
-                                      <span className="ml-2 text-xs text-muted-foreground">
+                                      <span className="text-xs text-muted-foreground">
                                         {activity.date}
                                       </span>
                                     </div>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                      {activity.description}
+                                      {activity.description.length > 100 
+                                        ? `${activity.description.substring(0, 100)}...` 
+                                        : activity.description
+                                      }
                                     </p>
                                   </div>
                                 </div>
@@ -258,12 +246,12 @@ const Dashboard = () => {
                         </ul>
                       ) : (
                         <div className="p-6 text-center">
-                          <p className="text-muted-foreground">No recent activities</p>
-                          <Link 
-                            to="/health-checkup"
-                            className="mt-2 text-sm text-medical-600 dark:text-medical-400 hover:underline"
-                          >
-                            Start your first health checkup
+                          <Activity className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+                          <p className="text-muted-foreground mb-3">No health activities yet</p>
+                          <Link to="/health-checkup">
+                            <Button size="sm">
+                              Start your first health checkup
+                            </Button>
                           </Link>
                         </div>
                       )}
@@ -273,65 +261,8 @@ const Dashboard = () => {
 
                 {/* Right Column */}
                 <div className="space-y-8">
-                  {/* Calendar Section */}
-                  <section>
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-semibold">Upcoming</h2>
-                      <button className="text-sm font-medium text-medical-600 dark:text-medical-400 hover:underline flex items-center">
-                        <span>View Calendar</span>
-                        <ChevronRight size={16} className="ml-1" />
-                      </button>
-                    </div>
-                    
-                    <div className="rounded-xl border border-border/40 bg-card overflow-hidden">
-                      <div className="p-4 bg-muted/50 border-b border-border flex items-center justify-between">
-                        <h3 className="font-medium flex items-center">
-                          <Calendar size={18} className="mr-2" />
-                          Reminders & Appointments
-                        </h3>
-                        <button className="p-1 rounded-full hover:bg-muted/80 transition-colors">
-                          <CalendarDays size={16} />
-                        </button>
-                      </div>
-                      {upcomingAppointments.length > 0 ? (
-                        <ul className="divide-y divide-border">
-                          {upcomingAppointments.map(appointment => (
-                            <li key={appointment.id}>
-                              <div className="p-4 hover:bg-muted/50 transition-colors">
-                                <div className="flex items-start">
-                                  <div className="p-2 rounded-full bg-muted/70 mr-3 mt-0.5">
-                                    <VideoIcon size={16} className="text-healing-500" />
-                                  </div>
-                                  <div>
-                                    <div className="flex items-center">
-                                      <h3 className="font-medium">{appointment.appointment_type}</h3>
-                                    </div>
-                                    <p className="text-xs text-medical-600 dark:text-medical-400 font-medium flex items-center mt-1">
-                                      <Clock size={12} className="mr-1" />
-                                      {new Date(appointment.appointment_date).toLocaleDateString()}, {appointment.appointment_time}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground mt-1">
-                                      with {appointment.doctor_name}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <div className="p-6 text-center">
-                          <p className="text-muted-foreground">No upcoming appointments</p>
-                          <Link 
-                            to="/virtual-consultation"
-                            className="mt-2 text-sm text-medical-600 dark:text-medical-400 hover:underline"
-                          >
-                            Schedule a consultation
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  </section>
+                  {/* Appointment Reminders */}
+                  <AppointmentReminders appointments={appointments} />
 
                   {/* Quick Actions Section */}
                   <section>
@@ -348,7 +279,7 @@ const Dashboard = () => {
                           <div className="p-2 rounded-full bg-healing-50 dark:bg-healing-900/30 mr-3">
                             <Activity size={18} className="text-healing-600 dark:text-healing-400" />
                           </div>
-                          <span className="font-medium">New Health Checkup</span>
+                          <span className="font-medium">Record Health Data</span>
                         </Link>
                         <Link
                           to="/virtual-consultation"
@@ -357,7 +288,7 @@ const Dashboard = () => {
                           <div className="p-2 rounded-full bg-medical-50 dark:bg-medical-900/30 mr-3">
                             <VideoIcon size={18} className="text-medical-600 dark:text-medical-400" />
                           </div>
-                          <span className="font-medium">Virtual Consultation</span>
+                          <span className="font-medium">Book Consultation</span>
                         </Link>
                         <Link
                           to="/medicine-advisor"
@@ -366,7 +297,7 @@ const Dashboard = () => {
                           <div className="p-2 rounded-full bg-amber-50 dark:bg-amber-900/30 mr-3">
                             <PillIcon size={18} className="text-amber-600 dark:text-amber-400" />
                           </div>
-                          <span className="font-medium">Medicine Advisor</span>
+                          <span className="font-medium">Medicine Guide</span>
                         </Link>
                       </div>
                     </div>

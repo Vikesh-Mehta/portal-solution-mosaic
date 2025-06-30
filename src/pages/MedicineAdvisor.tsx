@@ -1,107 +1,76 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PillIcon, Search, AlertTriangle, Info, Clock, ArrowLeft } from 'lucide-react';
+import { Search, ArrowLeft, Pill, AlertTriangle, Info, Clock } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const MedicineAdvisor = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMedicine, setSelectedMedicine] = useState<any>(null);
 
-  // Mock medicine database
+  // Simplified medicine database
   const medicines = [
     {
       id: 1,
       name: 'Paracetamol',
       genericName: 'Acetaminophen',
-      type: 'Pain Reliever',
-      dosage: '500mg',
-      uses: ['Fever', 'Headache', 'Body pain'],
-      sideEffects: ['Nausea', 'Liver damage (overdose)'],
-      precautions: ['Do not exceed 4g per day', 'Avoid alcohol'],
-      price: '₹15-30',
-      prescription: false
+      category: 'Pain Relief',
+      dosage: '500mg - 1000mg every 4-6 hours',
+      maxDaily: '4000mg per day',
+      uses: ['Fever', 'Headache', 'Body pain', 'Cold symptoms'],
+      sideEffects: ['Rare when used as directed', 'Liver damage with overdose'],
+      warnings: ['Do not exceed recommended dose', 'Avoid alcohol'],
+      available: true
     },
     {
       id: 2,
       name: 'Ibuprofen',
       genericName: 'Ibuprofen',
-      type: 'NSAID',
-      dosage: '400mg',
-      uses: ['Pain', 'Inflammation', 'Fever'],
-      sideEffects: ['Stomach upset', 'Drowsiness'],
-      precautions: ['Take with food', 'Avoid if allergic to NSAIDs'],
-      price: '₹20-40',
-      prescription: false
+      category: 'Pain Relief',
+      dosage: '200mg - 400mg every 4-6 hours',
+      maxDaily: '1200mg per day',
+      uses: ['Pain', 'Inflammation', 'Fever', 'Menstrual cramps'],
+      sideEffects: ['Stomach upset', 'Dizziness', 'Headache'],
+      warnings: ['Take with food', 'Not for people with stomach ulcers'],
+      available: true
     },
     {
       id: 3,
-      name: 'Amoxicillin',
-      genericName: 'Amoxicillin',
-      type: 'Antibiotic',
-      dosage: '500mg',
-      uses: ['Bacterial infections', 'Respiratory infections'],
-      sideEffects: ['Diarrhea', 'Rash', 'Nausea'],
-      precautions: ['Complete full course', 'Take as prescribed'],
-      price: '₹50-100',
-      prescription: true
+      name: 'Cetirizine',
+      genericName: 'Cetirizine HCl',
+      category: 'Antihistamine',
+      dosage: '10mg once daily',
+      maxDaily: '10mg per day',
+      uses: ['Allergies', 'Hay fever', 'Itching', 'Hives'],
+      sideEffects: ['Drowsiness', 'Dry mouth', 'Fatigue'],
+      warnings: ['May cause drowsiness', 'Avoid alcohol'],
+      available: true
     },
     {
       id: 4,
-      name: 'Cetirizine',
-      genericName: 'Cetirizine',
-      type: 'Antihistamine',
-      dosage: '10mg',
-      uses: ['Allergies', 'Hay fever', 'Itching'],
-      sideEffects: ['Drowsiness', 'Dry mouth'],
-      precautions: ['Avoid alcohol', 'May cause drowsiness'],
-      price: '₹25-50',
-      prescription: false
-    },
-    {
-      id: 5,
       name: 'Omeprazole',
       genericName: 'Omeprazole',
-      type: 'Proton Pump Inhibitor',
-      dosage: '20mg',
-      uses: ['Acid reflux', 'Stomach ulcers', 'GERD'],
-      sideEffects: ['Headache', 'Diarrhea', 'Stomach pain'],
-      precautions: ['Take before meals', 'Long-term use may affect B12'],
-      price: '₹40-80',
-      prescription: false
+      category: 'Acid Reducer',
+      dosage: '20mg once daily before breakfast',
+      maxDaily: '20mg per day',
+      uses: ['Heartburn', 'Acid reflux', 'Stomach ulcers'],
+      sideEffects: ['Headache', 'Nausea', 'Stomach pain'],
+      warnings: ['Take before meals', 'Long-term use may affect bone density'],
+      available: true
     }
   ];
 
-  const handleSearch = () => {
-    if (!searchQuery.trim()) return;
-    
-    setIsSearching(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      const results = medicines.filter(medicine =>
-        medicine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        medicine.genericName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        medicine.uses.some(use => use.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-      setSearchResults(results);
-      setIsSearching(false);
-    }, 800);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
+  const filteredMedicines = medicines.filter(medicine =>
+    medicine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    medicine.genericName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    medicine.uses.some(use => use.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -118,161 +87,174 @@ const MedicineAdvisor = () => {
               <ArrowLeft size={16} className="mr-2" />
               Back to Dashboard
             </Button>
-            <h1 className="text-3xl font-bold mb-2">Medicine Advisor</h1>
+            <h1 className="text-3xl font-bold mb-2">Medicine Information</h1>
             <p className="text-muted-foreground">
-              Search for medicine information, dosages, and precautions
+              Quick reference for common over-the-counter medications
             </p>
           </div>
 
-          {/* Disclaimer */}
-          <Alert className="mb-8">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Disclaimer:</strong> This information is for educational purposes only. 
-              Always consult with a healthcare professional before taking any medication.
-            </AlertDescription>
-          </Alert>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Search and Medicine List */}
+            <div className="lg:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Pill className="mr-2" />
+                    Search Medicines
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+                    <Input
+                      placeholder="Search by name or symptom..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {filteredMedicines.map((medicine) => (
+                      <div
+                        key={medicine.id}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                          selectedMedicine?.id === medicine.id 
+                            ? 'bg-primary/10 border-primary' 
+                            : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => setSelectedMedicine(medicine)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">{medicine.name}</h4>
+                            <p className="text-sm text-muted-foreground">{medicine.category}</p>
+                          </div>
+                          {medicine.available && (
+                            <Badge variant="secondary" className="text-xs">Available</Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Search Section */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Search className="mr-2" />
-                Search Medicines
-              </CardTitle>
-              <CardDescription>
-                Enter medicine name, generic name, or condition to search
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex space-x-4">
-                <Input
-                  placeholder="e.g., Paracetamol, headache, fever..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="flex-1"
-                />
-                <Button onClick={handleSearch} disabled={isSearching}>
-                  {isSearching ? 'Searching...' : 'Search'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold">Search Results ({searchResults.length})</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {searchResults.map(medicine => (
-                  <Card key={medicine.id}>
+            {/* Medicine Details */}
+            <div className="lg:col-span-2">
+              {selectedMedicine ? (
+                <div className="space-y-6">
+                  <Card>
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="flex items-center">
-                            <PillIcon className="mr-2 text-blue-500" />
-                            {medicine.name}
-                          </CardTitle>
-                          <CardDescription>
-                            {medicine.genericName} • {medicine.type}
-                          </CardDescription>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium">{medicine.dosage}</div>
-                          <div className="text-xs text-muted-foreground">{medicine.price}</div>
-                        </div>
-                      </div>
+                      <CardTitle className="flex items-center justify-between">
+                        {selectedMedicine.name}
+                        <Badge>{selectedMedicine.category}</Badge>
+                      </CardTitle>
+                      <CardDescription>
+                        Generic name: {selectedMedicine.genericName}
+                      </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <Badge variant={medicine.prescription ? "destructive" : "default"}>
-                          {medicine.prescription ? 'Prescription Required' : 'Over the Counter'}
-                        </Badge>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium text-sm mb-2 flex items-center">
-                          <Info size={14} className="mr-1" />
-                          Uses
-                        </h4>
-                        <div className="flex flex-wrap gap-1">
-                          {medicine.uses.map((use: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {use}
-                            </Badge>
-                          ))}
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="font-medium mb-2 flex items-center">
+                            <Clock size={16} className="mr-2" />
+                            Dosage Information
+                          </h4>
+                          <p className="text-sm text-muted-foreground mb-1">
+                            <strong>Typical dose:</strong> {selectedMedicine.dosage}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Maximum daily:</strong> {selectedMedicine.maxDaily}
+                          </p>
+                        </div>
+                        
+                        <div>
+                          <h4 className="font-medium mb-2">Common Uses</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedMedicine.uses.map((use: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {use}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                      
-                      <div>
-                        <h4 className="font-medium text-sm mb-2 flex items-center">
-                          <AlertTriangle size={14} className="mr-1 text-orange-500" />
+                    </CardContent>
+                  </Card>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-orange-600">
+                          <Info size={16} className="mr-2" />
                           Side Effects
-                        </h4>
-                        <div className="text-sm text-muted-foreground">
-                          {medicine.sideEffects.join(', ')}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium text-sm mb-2 flex items-center">
-                          <Clock size={14} className="mr-1 text-red-500" />
-                          Precautions
-                        </h4>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {medicine.precautions.map((precaution: string, index: number) => (
-                            <li key={index} className="flex items-start">
-                              <span className="mr-2">•</span>
-                              <span>{precaution}</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-1">
+                          {selectedMedicine.sideEffects.map((effect: string, index: number) => (
+                            <li key={index} className="text-sm text-muted-foreground flex items-start">
+                              <span className="w-1 h-1 bg-muted-foreground rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                              {effect}
                             </li>
                           ))}
                         </ul>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-red-600">
+                          <AlertTriangle size={16} className="mr-2" />
+                          Warnings
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-1">
+                          {selectedMedicine.warnings.map((warning: string, index: number) => (
+                            <li key={index} className="text-sm text-muted-foreground flex items-start">
+                              <span className="w-1 h-1 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                              {warning}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start space-x-3">
+                        <AlertTriangle className="text-yellow-600 mt-0.5" size={20} />
+                        <div>
+                          <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                            Important Disclaimer
+                          </h4>
+                          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                            This information is for educational purposes only and should not replace professional medical advice. 
+                            Always consult with a healthcare professional before taking any medication, especially if you have 
+                            existing health conditions or are taking other medications.
+                          </p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Pill className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Select a Medicine</h3>
+                    <p className="text-muted-foreground">
+                      Choose a medicine from the list to view detailed information about dosage, uses, and safety guidelines.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          )}
-
-          {/* No Results */}
-          {searchResults.length === 0 && searchQuery && !isSearching && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <PillIcon size={48} className="mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No medicines found</h3>
-                <p className="text-muted-foreground">
-                  Try searching with different terms or check the spelling
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Popular Medicines */}
-          {!searchQuery && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold">Popular Medicines</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {medicines.slice(0, 6).map(medicine => (
-                  <Card key={medicine.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium">{medicine.name}</h3>
-                        <Badge variant={medicine.prescription ? "destructive" : "default"} className="text-xs">
-                          {medicine.prescription ? 'Rx' : 'OTC'}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{medicine.type}</p>
-                      <div className="text-xs text-muted-foreground">
-                        Common uses: {medicine.uses.slice(0, 2).join(', ')}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       </main>
 

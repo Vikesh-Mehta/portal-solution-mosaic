@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Droplet, Waves, Activity, Save, ArrowLeft } from 'lucide-react';
+import { Heart, Droplet, Waves, Activity, Save, ArrowLeft, TrendingUp } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const HealthCheckup = () => {
   const navigate = useNavigate();
-  const { addHealthRecord } = useUserHealthRecords();
+  const { addHealthRecord, records } = useUserHealthRecords();
   const { toast } = useToast();
   
   const [vitalSigns, setVitalSigns] = useState({
@@ -25,7 +25,7 @@ const HealthCheckup = () => {
   });
   
   const [formData, setFormData] = useState({
-    title: 'Regular Health Checkup',
+    title: `Health Checkup - ${new Date().toLocaleDateString()}`,
     description: '',
     doctorName: '',
     recommendations: ''
@@ -40,18 +40,59 @@ const HealthCheckup = () => {
     }));
   };
 
+  const getVitalStatus = (vital: string, value: string) => {
+    if (!value) return 'normal';
+    
+    const numValue = parseFloat(value);
+    
+    switch (vital) {
+      case 'heartRate':
+        if (numValue >= 60 && numValue <= 100) return 'normal';
+        if (numValue >= 50 && numValue <= 110) return 'warning';
+        return 'danger';
+      case 'bloodSugar':
+        if (numValue >= 70 && numValue <= 140) return 'normal';
+        if (numValue >= 60 && numValue <= 180) return 'warning';
+        return 'danger';
+      case 'oxygenLevel':
+        if (numValue >= 95) return 'normal';
+        if (numValue >= 90) return 'warning';
+        return 'danger';
+      default:
+        return 'normal';
+    }
+  };
+
+  const getPreviousValue = (vital: string) => {
+    const lastCheckup = records.find(r => 
+      r.record_type === 'checkup' && 
+      r.vital_signs && 
+      r.vital_signs[vital]?.value
+    );
+    return lastCheckup?.vital_signs[vital]?.value || null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     try {
+      // Update vital signs status before saving
+      const updatedVitalSigns = Object.entries(vitalSigns).reduce((acc, [key, vital]) => {
+        acc[key] = {
+          ...vital,
+          status: getVitalStatus(key, vital.value)
+        };
+        return acc;
+      }, {} as typeof vitalSigns);
+
       const result = await addHealthRecord({
         record_type: 'checkup',
         title: formData.title,
         description: formData.description,
         doctor_name: formData.doctorName || null,
         date_recorded: new Date().toISOString().split('T')[0],
-        vital_signs: vitalSigns,
+        vital_signs: updatedVitalSigns,
         test_results: null,
         recommendations: formData.recommendations || null
       });
@@ -100,7 +141,6 @@ const HealthCheckup = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Vital Signs Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -112,64 +152,61 @@ const HealthCheckup = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="heartRate" className="flex items-center">
-                    <Heart size={16} className="mr-2 text-red-500" />
-                    Heart Rate (bpm)
-                  </Label>
-                  <Input
-                    id="heartRate"
-                    type="number"
-                    placeholder="e.g., 72"
-                    value={vitalSigns.heartRate.value}
-                    onChange={(e) => handleVitalChange('heartRate', e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="bloodPressure" className="flex items-center">
-                    <Activity size={16} className="mr-2 text-blue-500" />
-                    Blood Pressure (mmHg)
-                  </Label>
-                  <Input
-                    id="bloodPressure"
-                    placeholder="e.g., 120/80"
-                    value={vitalSigns.bloodPressure.value}
-                    onChange={(e) => handleVitalChange('bloodPressure', e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="bloodSugar" className="flex items-center">
-                    <Droplet size={16} className="mr-2 text-orange-500" />
-                    Blood Sugar (mg/dL)
-                  </Label>
-                  <Input
-                    id="bloodSugar"
-                    type="number"
-                    placeholder="e.g., 95"
-                    value={vitalSigns.bloodSugar.value}
-                    onChange={(e) => handleVitalChange('bloodSugar', e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="oxygenLevel" className="flex items-center">
-                    <Waves size={16} className="mr-2 text-cyan-500" />
-                    Oxygen Level (%)
-                  </Label>
-                  <Input
-                    id="oxygenLevel"
-                    type="number"
-                    placeholder="e.g., 98"
-                    value={vitalSigns.oxygenLevel.value}
-                    onChange={(e) => handleVitalChange('oxygenLevel', e.target.value)}
-                  />
-                </div>
+                {Object.entries(vitalSigns).map(([key, vital]) => {
+                  const previousValue = getPreviousValue(key);
+                  const icons = {
+                    heartRate: <Heart size={16} className="mr-2 text-red-500" />,
+                    bloodPressure: <Activity size={16} className="mr-2 text-blue-500" />,
+                    bloodSugar: <Droplet size={16} className="mr-2 text-orange-500" />,
+                    oxygenLevel: <Waves size={16} className="mr-2 text-cyan-500" />
+                  };
+                  
+                  const labels = {
+                    heartRate: 'Heart Rate (bpm)',
+                    bloodPressure: 'Blood Pressure (mmHg)',
+                    bloodSugar: 'Blood Sugar (mg/dL)',
+                    oxygenLevel: 'Oxygen Level (%)'
+                  };
+
+                  const placeholders = {
+                    heartRate: 'e.g., 72',
+                    bloodPressure: 'e.g., 120/80',
+                    bloodSugar: 'e.g., 95',
+                    oxygenLevel: 'e.g., 98'
+                  };
+
+                  return (
+                    <div key={key} className="space-y-2">
+                      <Label htmlFor={key} className="flex items-center">
+                        {icons[key as keyof typeof icons]}
+                        {labels[key as keyof typeof labels]}
+                      </Label>
+                      <Input
+                        id={key}
+                        type={key === 'bloodPressure' ? 'text' : 'number'}
+                        placeholder={placeholders[key as keyof typeof placeholders]}
+                        value={vital.value}
+                        onChange={(e) => handleVitalChange(key, e.target.value)}
+                        className={
+                          vital.value ? (
+                            getVitalStatus(key, vital.value) === 'danger' ? 'border-red-500' :
+                            getVitalStatus(key, vital.value) === 'warning' ? 'border-yellow-500' :
+                            'border-green-500'
+                          ) : ''
+                        }
+                      />
+                      {previousValue && (
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <TrendingUp size={12} className="mr-1" />
+                          Previous: {previousValue} {vital.unit}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
 
-            {/* Additional Information */}
             <Card>
               <CardHeader>
                 <CardTitle>Additional Information</CardTitle>
@@ -198,7 +235,7 @@ const HealthCheckup = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">How are you feeling?</Label>
                   <Textarea
                     id="description"
                     placeholder="Describe how you're feeling or any symptoms..."
@@ -208,7 +245,7 @@ const HealthCheckup = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="recommendations">Recommendations</Label>
+                  <Label htmlFor="recommendations">Notes & Recommendations</Label>
                   <Textarea
                     id="recommendations"
                     placeholder="Any recommendations or notes..."
