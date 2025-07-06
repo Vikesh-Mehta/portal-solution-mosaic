@@ -1,18 +1,25 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   const navItems = user ? [
@@ -28,14 +35,14 @@ const Header = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-border z-50">
+    <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-border z-50 dark:bg-gray-900/95">
       <div className="container px-4 md:px-6 mx-auto">
         <div className="flex items-center justify-between h-16">
           <Link to={user ? "/dashboard" : "/"} className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-medical-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">S</span>
             </div>
-            <span className="font-bold text-xl text-gray-900">Smart Health</span>
+            <span className="font-bold text-xl text-gray-900 dark:text-white">Smart Health</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -44,7 +51,7 @@ const Header = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className="text-gray-600 hover:text-medical-600 font-medium transition-colors"
+                className="text-gray-600 hover:text-medical-600 font-medium transition-colors dark:text-gray-300 dark:hover:text-medical-400"
               >
                 {item.name}
               </Link>
@@ -53,11 +60,22 @@ const Header = () => {
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Dark Mode Toggle */}
+            <div className="flex items-center space-x-2">
+              <Sun className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              <Switch
+                checked={theme === 'dark'}
+                onCheckedChange={toggleTheme}
+                className="data-[state=checked]:bg-medical-600"
+              />
+              <Moon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+            </div>
+
             {user ? (
               <div className="flex items-center space-x-3">
                 <Link
                   to="/profile"
-                  className="flex items-center space-x-2 text-gray-600 hover:text-medical-600 transition-colors"
+                  className="flex items-center space-x-2 text-gray-600 hover:text-medical-600 transition-colors dark:text-gray-300 dark:hover:text-medical-400"
                 >
                   <User size={20} />
                   <span className="font-medium">Profile</span>
@@ -91,7 +109,7 @@ const Header = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -99,25 +117,39 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-border bg-white">
+          <div className="md:hidden border-t border-border bg-white dark:bg-gray-900">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="block px-3 py-2 text-gray-600 hover:text-medical-600 font-medium transition-colors"
+                  className="block px-3 py-2 text-gray-600 hover:text-medical-600 font-medium transition-colors dark:text-gray-300 dark:hover:text-medical-400"
                 >
                   {item.name}
                 </Link>
               ))}
               
+              {/* Mobile Dark Mode Toggle */}
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-gray-600 dark:text-gray-300 font-medium">Dark Mode</span>
+                <div className="flex items-center space-x-2">
+                  <Sun className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  <Switch
+                    checked={theme === 'dark'}
+                    onCheckedChange={toggleTheme}
+                    className="data-[state=checked]:bg-medical-600"
+                  />
+                  <Moon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                </div>
+              </div>
+              
               {user ? (
-                <div className="border-t border-border pt-2 mt-2">
+                <div className="border-t border-border pt-2 mt-2 dark:border-gray-700">
                   <Link
                     to="/profile"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-medical-600 transition-colors"
+                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-medical-600 transition-colors dark:text-gray-300 dark:hover:text-medical-400"
                   >
                     <User size={20} />
                     <span>Profile</span>
@@ -127,14 +159,14 @@ const Header = () => {
                       handleSignOut();
                       setIsMenuOpen(false);
                     }}
-                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-medical-600 transition-colors w-full text-left"
+                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-medical-600 transition-colors w-full text-left dark:text-gray-300 dark:hover:text-medical-400"
                   >
                     <LogOut size={20} />
                     <span>Sign Out</span>
                   </button>
                 </div>
               ) : (
-                <div className="border-t border-border pt-2 mt-2 space-y-2">
+                <div className="border-t border-border pt-2 mt-2 space-y-2 dark:border-gray-700">
                   <Link
                     to="/auth"
                     onClick={() => setIsMenuOpen(false)}
