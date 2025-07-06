@@ -73,13 +73,6 @@ const Header = () => {
 
             {user ? (
               <div className="flex items-center space-x-3">
-                <Link
-                  to="/profile"
-                  className="flex items-center space-x-2 text-gray-600 hover:text-medical-600 transition-colors dark:text-gray-300 dark:hover:text-medical-400"
-                >
-                  <User size={20} />
-                  <span className="font-medium">Profile</span>
-                </Link>
                 <Button
                   onClick={handleSignOut}
                   variant="outline"
@@ -146,14 +139,6 @@ const Header = () => {
               
               {user ? (
                 <div className="border-t border-border pt-2 mt-2 dark:border-gray-700">
-                  <Link
-                    to="/profile"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-medical-600 transition-colors dark:text-gray-300 dark:hover:text-medical-400"
-                  >
-                    <User size={20} />
-                    <span>Profile</span>
-                  </Link>
                   <button
                     onClick={() => {
                       handleSignOut();
