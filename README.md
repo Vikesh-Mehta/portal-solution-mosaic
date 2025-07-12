@@ -1,69 +1,166 @@
-# Welcome to your Lovable project
 
-## Project info
+# Smart Health - Rural Healthcare Platform
 
-**URL**: https://lovable.dev/projects/549aa2b8-3311-4a9b-a07a-b9f8d6fb7817
+Smart Health is an AI-integrated self-service healthcare platform designed specifically for rural communities. It provides 24/7 access to medical assistance through smart health booths, bringing healthcare closer to underserved areas without requiring a full hospital infrastructure.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+### 🏥 Core Healthcare Features
+- **Health Checkup System** - Record and track vital signs (heart rate, blood pressure, blood sugar, oxygen levels)
+- **Virtual Consultations** - Connect with qualified doctors remotely
+- **Medicine Advisor** - AI-powered medication guidance and information
+- **Health Records Management** - Secure storage and tracking of medical history
+- **Appointment Scheduling** - Book and manage healthcare appointments
 
-**Use Lovable**
+### 👤 User Management
+- **User Authentication** - Secure login/signup with Supabase Auth
+- **Profile Management** - Comprehensive health profiles with medical history
+- **Health Tracking** - Personal health dashboard with insights and trends
+- **Notifications** - Health reminders and appointment alerts
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/549aa2b8-3311-4a9b-a07a-b9f8d6fb7817) and start prompting.
+### 🎨 User Experience
+- **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
+- **Dark/Light Mode** - Adaptive theme support
+- **Accessibility** - Built with accessibility best practices
+- **Progressive Web App** - Installable and works offline
 
-Changes made via Lovable will be committed automatically to this repo.
+## Technology Stack
 
-**Use your preferred IDE**
+### Frontend
+- **React 18** - Modern React with hooks and functional components
+- **TypeScript** - Type-safe development
+- **Vite** - Fast build tool and development server
+- **Tailwind CSS** - Utility-first CSS framework
+- **Shadcn/ui** - High-quality component library
+- **React Router** - Client-side routing
+- **React Query** - Server state management
+- **Lucide React** - Beautiful icon library
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Backend & Database
+- **Supabase** - Backend-as-a-Service platform
+- **PostgreSQL** - Relational database with RLS (Row Level Security)
+- **Supabase Auth** - Authentication and user management
+- **Edge Functions** - Serverless functions for custom logic
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Project Structure
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+src/
+├── components/           # Reusable UI components
+│   ├── ui/              # Base UI components (shadcn/ui)
+│   ├── layout/          # Layout components (Header, Footer)
+│   ├── home/            # Landing page components
+│   └── dashboard/       # Dashboard-specific components
+├── hooks/               # Custom React hooks
+├── pages/               # Page components
+├── contexts/            # React contexts (Auth, Theme)
+├── utils/               # Utility functions
+├── integrations/        # Third-party integrations
+└── lib/                 # Library configurations
 ```
 
-**Edit a file directly in GitHub**
+## Getting Started
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Prerequisites
+- Node.js 18+ and npm
+- Supabase account and project
 
-**Use GitHub Codespaces**
+### Installation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd smart-health
+   ```
 
-## What technologies are used for this project?
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-This project is built with .
+3. **Set up Supabase**
+   - Create a new Supabase project
+   - Run the SQL migrations in `supabase/migrations/`
+   - Update the Supabase configuration in `src/integrations/supabase/client.ts`
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+4. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-## How can I deploy this project?
+5. **Build for production**
+   ```bash
+   npm run build
+   ```
 
-Simply open [Lovable](https://lovable.dev/projects/549aa2b8-3311-4a9b-a07a-b9f8d6fb7817) and click on Share -> Publish.
+## Database Schema
 
-## I want to use a custom domain - is that possible?
+### Tables
+- **profiles** - User profiles and personal information
+- **health_records** - Medical records and health data
+- **appointments** - Healthcare appointments and scheduling
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+### Security
+- Row Level Security (RLS) enabled on all tables
+- Users can only access their own data
+- Secure authentication with Supabase Auth
+
+## Key Features Implementation
+
+### Health Tracking System
+- Real-time vital signs monitoring
+- Health score calculation and trends
+- Risk assessment and recommendations
+- Historical data visualization
+
+### Virtual Consultations
+- Doctor availability management
+- Appointment scheduling system
+- Video consultation preparation
+- Medical record sharing
+
+### Medicine Advisory
+- Drug information database
+- Interaction checking
+- Dosage recommendations
+- Side effect warnings
+
+## Production Deployment
+
+### Environment Variables
+Ensure these are set in your production environment:
+- Supabase URL and API keys
+- Any third-party service API keys
+- Analytics configuration
+
+### Performance Optimizations
+- Code splitting and lazy loading
+- Image optimization
+- Bundle size optimization
+- Caching strategies implemented
+
+### Security Features
+- HTTPS enforcement
+- Content Security Policy headers
+- Input validation and sanitization
+- Rate limiting on API endpoints
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Support
+
+For support, email support@smarthealth.com or join our community discussions.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+**Smart Health** - Bringing healthcare to every community, one smart booth at a time.
